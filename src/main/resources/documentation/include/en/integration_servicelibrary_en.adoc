@@ -1,0 +1,88 @@
+=== Introduction
+
+There are four service type :
+
+* SOAP : for SOAP endpoints
+* REST : for REST endpoints. Http with corresponding method (GET, POST,...)
+* FTP : interact with files using FTP protocol
+* KAFKA : for Apache Kafka Topics
+
+=== SOAP Service
+
+TBD
+
+=== REST Service
+
+TBD
+
+=== FTP Service
+
+TBD
+
+=== KAFKA Service
+
+In order to connect to a Kafka stream,  you need to feed the following parameters:
+
+* Service Path : should have the list of kafka and port target.
+    Ex : kafka-public-company-id.aivencloud.com:27453
+
+* Kafka Topic : the name of the topic to interact with
+    Ex : cerberus-example
+
+Additionally, you can define some extra key/value parameters inside Header tab.
+
+Ex for connecting to Kafka public Aiven service in SSL mode (value depend from your own configuration) : 
+|=== 
+
+| security.protocol | SSL
+
+| ssl.keystore.type | PKCS12
+
+| ssl.keystore.location | /opt/config/client.keystore.p12
+
+| ssl.keystore.password | password
+
+| ssl.truststore.location | /opt/config/client.truststore.jks
+
+| ssl.truststore.password | password
+
+| ssl.endpoint.identification.algorithm | 
+
+|=== 
+
+In Cerberus, depending on the value provided in Method field, you can :
+
+* produce an event to a topic -> PRODUCE
+* search for an event in a topic -> SEARCH
+    
+==== PRODUCE
+
+When producing an event to Kafka, you should define :
+
+. 'Kafka Key' that will contain the key of the event produced. Kafka will use that information in order to route it to correct partition.
+
+. 'Service Request' that will contain the content of the event sent to the corresponding topic.
+
+==== SEARCH
+
+When searching an event from Kafka, at the action level you will be allowed to provide :
+
+. Nb Evt : That define the max number of event to wait until the action is released with the associated content.
+
+. Evt Wait sec : That define the number of second that Cerberus will wait until it gets the target 'Nb Evt' events to retrieve.
+
+Cerberus will wait until either the number of event retrieved or time is reached.
+
+When a test case contain a callService action with a KAFKA SEARCH method, at the beginning of the execution, Cerberus will automatically store the latest offset of each partition of the selected topic. When the action is reached, Cerberus will automatically search the events starting at the previously saved offset. That prevent Cerberus to search on the full list of events inside the topic securing performance of the test over time.
+
+Additionally, you can fill a 'Kafka Filter Path' in jsonpath format and corresponding 'Kafka Filter Value' in order to filter the events found to some specific ones.
+
+The best practice is to generate a functional unique key to Cerberus (e.g. 'cerberus%system.EXECUTIONID%') or use an existing one that will be available in the events to filter the results.
+
+Example
+image:kafka_search.png[kafka_search_filters]
+
+The results will be stored in the Cerberus elements (as it is done for SOAP/REST response) and filtered will all the elements matching the filter path = value.
+
+TIPS : If you want to have multiples conditions you can use the following syntax as json path :
+image:kafka_search2.png[kafka_search_filters_multiple_conditions]
